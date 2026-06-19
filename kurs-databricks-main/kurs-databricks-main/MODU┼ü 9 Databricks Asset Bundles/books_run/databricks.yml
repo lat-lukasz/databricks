@@ -1,0 +1,43 @@
+# This is a Databricks asset bundle definition for books_run.
+# See https://docs.databricks.com/dev-tools/bundles/index.html for documentation.
+bundle:
+  name: books_run
+  uuid: 35f0e958-27d2-4e27-9cbd-ebe55e9b5ab2
+
+artifacts:
+  python_artifact:
+    type: whl
+    build: uv build --wheel
+
+include:
+  - resources/*.yml
+  - resources/*/*.yml
+
+targets:
+  dev:
+    # The default target uses 'mode: development' to create a development copy.
+    # - Deployed resources get prefixed with '[dev my_user_name]'
+    # - Any job schedules and triggers are paused by default.
+    # See also https://docs.databricks.com/dev-tools/bundles/deployment-modes.html.
+    mode: development
+    default: true
+    workspace:
+      host: https://adb-1735726609950924.4.azuredatabricks.net
+      
+
+    presets:
+      # Set dynamic_version: true on all artifacts of type "whl".
+      # This makes "bundle deploy" add a timestamp to wheel's version before uploading,
+      # new wheel takes over the previous installation even if actual wheel version is unchanged.
+      # See https://docs.databricks.com/aws/en/dev-tools/bundles/settings
+      artifacts_dynamic_version: true
+
+  prod:
+    mode: production
+    workspace:
+      host: https://adb-1735726609950924.4.azuredatabricks.net
+      # We explicitly deploy to /Workspace/Users/krzysiek@cegladanych.pl to make sure we only have a single copy.
+      root_path: /Workspace/Users/krzysiek@cegladanych.pl/.bundle/${bundle.name}/${bundle.target}
+    permissions:
+      - user_name: krzysiek@cegladanych.pl
+        level: CAN_MANAGE
